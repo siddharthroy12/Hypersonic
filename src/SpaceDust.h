@@ -1,18 +1,19 @@
 #pragma once
 
-#include <raylib.h>
+#include "../libs/raylib/src/raylib.h"
+
 #include <vector>
 
 class SpaceDust
 {
-public:
-	SpaceDust(float size, int count);
+    public:
+        SpaceDust(float size, int count);
 
-	void UpdateViewPosition(Vector3 viewPosition);
-	void Draw(Vector3 viewPosition, Vector3 velocity, bool drawDots) const;
+        void UpdateViewPosition(Vector3 viewPosition);
+        void Draw(Vector3 viewPosition, Vector3 velocity, bool drawDots) const;
 
-private:
-	std::vector<Vector3> Points;
-	std::vector<Color> Colors;
-	float Extent;
+    private:
+        std::vector<Vector3> Points;
+        std::vector<Color> Colors;
+        float Extent;
 };
