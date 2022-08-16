@@ -30,7 +30,7 @@ int g_RenderHeight = 300;
 
 void drawStandardFPS() {
     BeginBlendMode(BlendMode::BLEND_ADDITIVE);
-    DrawText(TextFormat("FPS %d", GetFPS()), 10, 10, 10, Color{143, 200, 170, 255});
+    DrawText(TextFormat("FPS %d", GetFPS()), 10, 10, 10, {143, 200, 170, 255});
     EndBlendMode();
 }
 
@@ -187,9 +187,9 @@ int main() {
         float scale = MIN((float)GetScreenWidth()/g_RenderWidth, (float)GetScreenHeight()/g_RenderHeight);
 
         // Draw render texture to screen, properly scaled
-        DrawTexturePro(renderTarget.texture, (Rectangle){ 0.0f, 0.0f, (float)renderTarget.texture.width, (float)-renderTarget.texture.height },
-                (Rectangle){ (GetScreenWidth() - ((float)g_RenderWidth*scale))*0.5f, (GetScreenHeight() - ((float)g_RenderHeight*scale))*0.5f,
-                (float)g_RenderWidth*scale, (float)g_RenderHeight*scale }, (Vector2){ 0, 0 }, 0.0f, WHITE);
+        DrawTexturePro(renderTarget.texture, { 0.0f, 0.0f, (float)renderTarget.texture.width, (float)-renderTarget.texture.height },
+                { (GetScreenWidth() - ((float)g_RenderWidth*scale))*0.5f, (GetScreenHeight() - ((float)g_RenderHeight*scale))*0.5f,
+                (float)g_RenderWidth*scale, (float)g_RenderHeight*scale }, { 0, 0 }, 0.0f, WHITE);
         EndMode2D();
         EndDrawing();
     }
