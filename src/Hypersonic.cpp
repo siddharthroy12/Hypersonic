@@ -60,6 +60,10 @@ void applyInputToShip(Ship& ship) {
     if (IsKeyDown(KEY_E)) ship.InputRollRight += 1;
 }
 
+void printVector3(Vector3 vector) {
+    std::cout << "X: " << vector.x << " Y: " << vector.y << " Z: " << vector.z << std::endl;
+}
+
 void summonEnemy(Ship &player, Model model, std::vector<Ship> &enemies) {
     Ship other(model, true);
     Vector3 random;
@@ -149,13 +153,15 @@ int main() {
             }
 
             if (IsKeyPressed(KEY_SPACE)) {
-                bullets.push_back(Bullet(false, RED, player.Position, player.GetForward()));
+                bullets.push_back(Bullet(false, RED, Vector3Add(player.Position, player.GetForward()), Vector3Scale(player.Velocity, 4)));
             }
 
             if (IsKeyPressed(KEY_I)) {
                 summonEnemy(player, shipModel, enemies);
             }
         }
+
+        printVector3(player.GetForward());
 
         { // Gameplay updates
             if (!gamePaused) {

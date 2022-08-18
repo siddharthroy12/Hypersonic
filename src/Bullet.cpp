@@ -12,11 +12,13 @@ Bullet::Bullet(bool enemy, Color color, Vector3 position, Vector3 velocity) {
 }
 
 void Bullet::drawBullet() {
-    DrawCylinderEx(this->position, Vector3Add(this->position, this->_velocity), 0, 0.09, 1, this->_color);
+    DrawCylinderEx(this->position,
+                   Vector3Add(this->position, Vector3Scale(Vector3Normalize(this->_velocity), 2)),
+                   0, 0.09, 1, this->_color);
 }
 
 void Bullet::updateBullet(float deltaTime) {
-    this->position = Vector3Add(this->position, Vector3Scale(this->_velocity, deltaTime*100));
+    this->position = Vector3Add(this->position, Vector3Scale(this->_velocity, deltaTime));
     this->timeElapsed += deltaTime;
 
     if (timeElapsed > 1) {

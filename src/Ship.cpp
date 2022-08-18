@@ -14,6 +14,7 @@ Ship::Ship(Model model, bool isEnemy)
     Rotation = QuaternionFromEuler(1, 2, 0);
     ShipColor = RAYWHITE;
     LastRungPosition = Position;
+    this->isEnemy = isEnemy;
 
     if (isEnemy) {
         this->TrailColor = MAROON;
@@ -115,7 +116,9 @@ void Ship::Draw(bool showDebugAxes) const
         EndBlendMode();
     }
 
-    this->DrawTrail();
+    if (this->isEnemy) {
+        this->DrawTrail();
+    }
 }
 
 void Ship::DrawTrail() const

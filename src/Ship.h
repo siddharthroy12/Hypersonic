@@ -32,6 +32,7 @@ class Ship : public Actor
 
         Color TrailColor = DARKGREEN;
         bool isDead = false;
+        bool isEnemy = false;
 
         Ship(Model model, bool isEnemy);
         ~Ship();
