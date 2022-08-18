@@ -20,4 +20,5 @@ class Actor
 
         Vector3 TransformPoint(Vector3 point) const;
         void RotateLocalEuler(Vector3 axis, float degrees);
+        void lookAt(Vector3 point);
 };

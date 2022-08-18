@@ -24,7 +24,7 @@ GameCamera::GameCamera(bool isPerspective, float fieldOfView)
 
 void GameCamera::FollowShip(const Ship& ship, float deltaTime)
 {
-    Vector3 position = ship.TransformPoint({ 0, 1, -3 });
+    Vector3 position = ship.TransformPoint({ 0, 1, -1 });
     Vector3 shipForwards = Vector3Scale(ship.GetForward(), 25);
     Vector3 target = Vector3Add(ship.Position, shipForwards);
     Vector3 up = ship.GetUp();
@@ -36,7 +36,7 @@ void GameCamera::MoveTo(Vector3 position, Vector3 target, Vector3 up, float delt
 {
     Camera.position = SmoothDamp(
             Camera.position, position,
-            10, deltaTime);
+            20, deltaTime);
 
     Camera.target = SmoothDamp(
             Camera.target, target,

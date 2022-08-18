@@ -38,8 +38,8 @@ class GameCamera
 
         Vector3 GetPosition() const;
 
-    private:
         Camera3D Camera;
+    private:
 
         Vector3 SmoothPosition;
         Vector3 SmoothTarget;

@@ -8,25 +8,20 @@
 static const float RungDistance = 2.0f;
 static const float RungTimeToLive = 2.0f;
 
-Ship::Ship(const char* modelPath, const char* texturePath, Color color)
+Ship::Ship(Model model, bool isEnemy)
 {
-    Texture2D texture = LoadTexture(texturePath);
-    texture.mipmaps = 0;
-    SetTextureFilter(texture, TEXTURE_FILTER_POINT);
-
-    ShipModel = LoadModel(modelPath);
-    ShipModel.materials[0].maps[MaterialMapIndex::MATERIAL_MAP_ALBEDO].texture = texture;
-
+    ShipModel = model;
     Rotation = QuaternionFromEuler(1, 2, 0);
-
-    ShipColor = color;
-
+    ShipColor = RAYWHITE;
     LastRungPosition = Position;
+
+    if (isEnemy) {
+        this->TrailColor = MAROON;
+    }
 }
 
 Ship::~Ship()
 {
-    UnloadModel(ShipModel);
 }
 
 void Ship::Update(float deltaTime)
@@ -116,8 +111,11 @@ void Ship::Draw(bool showDebugAxes) const
         DrawLine3D(Position, Vector3Add(Position, GetForward()), { 0, 0, 255, 255 });
         DrawLine3D(Position, Vector3Add(Position, GetLeft()), { 255, 0, 0, 255 });
         DrawLine3D(Position, Vector3Add(Position, GetUp()), { 0, 255, 0, 255 });
+        DrawSphereWires(Position, 0.3, 5, 5, GRAY);
         EndBlendMode();
     }
+
+    this->DrawTrail();
 }
 
 void Ship::DrawTrail() const

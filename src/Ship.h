@@ -31,8 +31,9 @@ class Ship : public Actor
         float Width = 1.0f;
 
         Color TrailColor = DARKGREEN;
+        bool isDead = false;
 
-        Ship(const char* modelPath, const char* texturePath, Color color);
+        Ship(Model model, bool isEnemy);
         ~Ship();
 
         void Update(float deltaTime);

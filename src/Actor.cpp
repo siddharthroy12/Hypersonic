@@ -66,3 +66,9 @@ void Actor::RotateLocalEuler(Vector3 axis, float degrees)
             Rotation,
             QuaternionFromAxisAngle(axis, radians));
 }
+
+void Actor::lookAt(Vector3 point) {
+    Matrix rotationMatrix = QuaternionToMatrix(Rotation);
+    rotationMatrix = MatrixRotate(Vector3Subtract(Position, point), Vector3Angle(Position, point));
+    this->Rotation = QuaternionFromMatrix(rotationMatrix);
+}
