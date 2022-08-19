@@ -1,18 +1,17 @@
 #pragma once
 
 #include "../libs/raylib/src/raylib.h"
+#include "./Entity.hpp"
 
-class Bullet {
+class Bullet : Entity {
     public:
         bool isDead;
         Bullet(bool enemy, Color color, Vector3 position, Vector3 velocity);
-        void drawBullet();
-        void updateBullet(float deltaTime);
+        void draw();
+        void update(float deltaTime);
         float timeElapsed;
-        bool enemy;
-
+        bool isEnemy;
+        Color color;
         Vector3 position;
-    private:
-        Vector3 _velocity;
-        Color _color;
+        Vector3 velocity;
 };

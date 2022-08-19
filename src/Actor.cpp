@@ -1,74 +1,60 @@
-#include "Actor.h"
+#include "Actor.hpp"
 
 #include "../libs/raylib/src/raymath.h"
 
-Actor::Actor()
-{
-    Position = Vector3Zero();
-    Velocity = Vector3Zero();
-    Rotation = QuaternionIdentity();
+Actor::Actor() {
+    position = Vector3Zero();
+    velocity = Vector3Zero();
+    rotation = QuaternionIdentity();
 }
 
-Vector3 Actor::GetForward() const
-{
+Vector3 Actor::getForward() const {
     return Vector3RotateByQuaternion(
             Vector3{ 0, 0, 1 },
-            Rotation);
+            rotation);
 }
 
-Vector3 Actor::GetBack() const
-{
+Vector3 Actor::getBack() const {
     return Vector3RotateByQuaternion(
             Vector3{ 0, 0, -1 },
-            Rotation);
+            rotation);
 }
 
-Vector3 Actor::GetRight() const
-{
+Vector3 Actor::getRight() const {
     return Vector3RotateByQuaternion(
             Vector3{ -1, 0, 0 },
-            Rotation);
+            rotation);
 }
 
-Vector3 Actor::GetLeft() const
-{
+Vector3 Actor::getLeft() const {
     return Vector3RotateByQuaternion(
             Vector3{ 1, 0, 0 },
-            Rotation);
+            rotation);
 }
 
-Vector3 Actor::GetUp() const
-{
+Vector3 Actor::getUp() const {
     return Vector3RotateByQuaternion(
             Vector3{ 0, 1, 0 },
-            Rotation);
+            rotation);
 }
 
-Vector3 Actor::GetDown() const
+Vector3 Actor::getDown() const
 {
     return Vector3RotateByQuaternion(
             Vector3{ 0, -1, 0 },
-            Rotation);
+            rotation);
 }
 
-Vector3 Actor::TransformPoint(Vector3 point) const
-{
-    auto mPos = MatrixTranslate(Position.x, Position.y, Position.z);
-    auto mRot = QuaternionToMatrix(Rotation);
+Vector3 Actor::transformPoint(Vector3 point) const {
+    auto mPos = MatrixTranslate(position.x, position.y, position.z);
+    auto mRot = QuaternionToMatrix(rotation);
     auto matrix = MatrixMultiply(mRot, mPos);
     return Vector3Transform(point, matrix);
 }
 
-void Actor::RotateLocalEuler(Vector3 axis, float degrees)
-{
+void Actor::rotateLocalEuler(Vector3 axis, float degrees) {
     auto radians = degrees * DEG2RAD;
-    Rotation = QuaternionMultiply(
-            Rotation,
+    rotation = QuaternionMultiply(
+            rotation,
             QuaternionFromAxisAngle(axis, radians));
-}
-
-void Actor::lookAt(Vector3 point) {
-    Matrix rotationMatrix = QuaternionToMatrix(Rotation);
-    rotationMatrix = MatrixRotate(Vector3Subtract(Position, point), Vector3Angle(Position, point));
-    this->Rotation = QuaternionFromMatrix(rotationMatrix);
 }

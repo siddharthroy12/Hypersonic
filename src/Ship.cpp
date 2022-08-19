@@ -1,6 +1,6 @@
-#include "Ship.h"
+#include "Ship.hpp"
 
-#include "MathUtils.h"
+#include "MathUtils.hpp"
 
 #include <vector>
 #include "../libs/raylib/src/rlgl.h"
@@ -8,152 +8,142 @@
 static const float RungDistance = 2.0f;
 static const float RungTimeToLive = 2.0f;
 
-Ship::Ship(Model model, bool isEnemy)
-{
-    ShipModel = model;
-    Rotation = QuaternionFromEuler(1, 2, 0);
-    ShipColor = RAYWHITE;
-    LastRungPosition = Position;
+Ship::Ship(Model model, bool isEnemy) {
+    shipModel = model;
+    rotation = QuaternionFromEuler(1, 2, 0);
+    shipColor = RAYWHITE;
+    lastRungPosition = position;
     this->isEnemy = isEnemy;
 
     if (isEnemy) {
-        this->TrailColor = MAROON;
+        this->trailColor = MAROON;
     }
 }
 
-Ship::~Ship()
-{
-}
 
-void Ship::Update(float deltaTime)
-{
+void Ship::update(float deltaTime) {
     // Give the ship some momentum when accelerating.
-    SmoothForward = SmoothDamp(SmoothForward, InputForward, ThrottleResponse, deltaTime);
-    SmoothLeft = SmoothDamp(SmoothLeft, InputLeft, ThrottleResponse, deltaTime);
-    SmoothUp = SmoothDamp(SmoothUp, InputUp, ThrottleResponse, deltaTime);
+    smoothForward = smoothDamp(smoothForward, inputForward, throttleResponse, deltaTime);
+    smoothLeft = smoothDamp(smoothLeft, inputLeft, throttleResponse, deltaTime);
+    smoothUp = smoothDamp(smoothUp, inputUp, throttleResponse, deltaTime);
 
     // Flying in reverse should be slower.
-    auto forwardSpeedMultipilier = SmoothForward > 0.0f ? 1.0f : 0.33f;
+    auto forwardSpeedMultipilier = smoothForward > 0.0f ? 1.0f : 0.33f;
 
     auto targetVelocity = Vector3Zero();
     targetVelocity = Vector3Add(
             targetVelocity,
-            Vector3Scale(GetForward(), MaxSpeed * forwardSpeedMultipilier * SmoothForward));
+            Vector3Scale(getForward(), maxSpeed * forwardSpeedMultipilier * smoothForward));
     targetVelocity = Vector3Add(
             targetVelocity,
-            Vector3Scale(GetUp(), MaxSpeed * .5f * SmoothUp));
+            Vector3Scale(getUp(), maxSpeed * .5f * smoothUp));
     targetVelocity = Vector3Add(
             targetVelocity,
-            Vector3Scale(GetLeft(), MaxSpeed * .5f * SmoothLeft));
+            Vector3Scale(getLeft(), maxSpeed * .5f * smoothLeft));
 
-    Velocity = SmoothDamp(Velocity, targetVelocity, 2.5, deltaTime);
-    Position = Vector3Add(Position, Vector3Scale(Velocity, deltaTime));
+    velocity = smoothDamp(velocity, targetVelocity, 2.5, deltaTime);
+    position = Vector3Add(position, Vector3Scale(velocity, deltaTime));
 
     // Give the ship some inertia when turning. These are the pilot controlled rotations.
-    SmoothPitchDown = SmoothDamp(SmoothPitchDown, InputPitchDown, TurnResponse, deltaTime);
-    SmoothRollRight = SmoothDamp(SmoothRollRight, InputRollRight, TurnResponse, deltaTime);
-    SmoothYawLeft = SmoothDamp(SmoothYawLeft, InputYawLeft, TurnResponse, deltaTime);
+    smoothPitchDown = smoothDamp(smoothPitchDown, inputPitchDown, turnResponse, deltaTime);
+    smoothRollRight = smoothDamp(smoothRollRight, inputRollRight, turnResponse, deltaTime);
+    smoothYawLeft = smoothDamp(smoothYawLeft, inputYawLeft, turnResponse, deltaTime);
 
-    RotateLocalEuler( { 0, 0, 1 }, SmoothRollRight * TurnRate * deltaTime);
-    RotateLocalEuler({ 1, 0, 0 }, SmoothPitchDown * TurnRate * deltaTime);
-    RotateLocalEuler({ 0, 1, 0 }, SmoothYawLeft * TurnRate * deltaTime);
+    rotateLocalEuler( { 0, 0, 1 }, smoothRollRight * turnRate * deltaTime);
+    rotateLocalEuler({ 1, 0, 0 }, smoothPitchDown * turnRate * deltaTime);
+    rotateLocalEuler({ 0, 1, 0 }, smoothYawLeft * turnRate * deltaTime);
 
     //// Auto-roll from yaw
     //// Movement like a 3D space sim. This only feels good if there's no horizon auto-align.
     //RotateLocalEuler({ 0, 0, -1 }, SmoothYawLeft * TurnRate * .5f * deltaTime);
 
     // Auto-roll to align to horizon
-    if (fabs(GetForward().y) < 0.8)
-    {
-        float autoSteerInput = GetRight().y;
-        RotateLocalEuler({ 0, 0, 1 }, autoSteerInput * TurnRate * .5f * deltaTime);
+    if (fabs(getForward().y) < 0.8) {
+        float autoSteerInput = getRight().y;
+        rotateLocalEuler({ 0, 0, 1 }, autoSteerInput * turnRate * .5f * deltaTime);
     }
 
     // When yawing and strafing, there's some bank added to the model for visual flavor.
-    float targetVisualBank = (-30 * DEG2RAD * SmoothYawLeft) + (-15 * DEG2RAD * SmoothLeft);
-    VisualBank = SmoothDamp(VisualBank, targetVisualBank, 10, deltaTime);
+    float targetVisualBank = (-30 * DEG2RAD * smoothYawLeft) + (-15 * DEG2RAD * smoothLeft);
+    visualBank = smoothDamp(visualBank, targetVisualBank, 10, deltaTime);
     Quaternion visualRotation = QuaternionMultiply(
-            Rotation, QuaternionFromAxisAngle({ 0, 0, 1 }, VisualBank));
+            rotation, QuaternionFromAxisAngle({ 0, 0, 1 }, visualBank));
 
     // Sync up the raylib representation of the model with the ship's position so that processing
     // doesn't have to happen at the render stage.
-    auto transform = MatrixTranslate(Position.x, Position.y, Position.z);
+    auto transform = MatrixTranslate(position.x, position.y, position.z);
     transform = MatrixMultiply(QuaternionToMatrix(visualRotation), transform);
-    ShipModel.transform = transform;
+    shipModel.transform = transform;
 
     // The currently active trail rung is dragged directly behind the ship for a smoother trail.
-    PositionActiveTrailRung();
-    if (Vector3Distance(Position, LastRungPosition) > RungDistance)
-    {
-        RungIndex = (RungIndex + 1) % RungCount;
-        LastRungPosition = Position;
+    positionActiveTrailRung();
+    if (Vector3Distance(position, lastRungPosition) > RungDistance) {
+        rungIndex = (rungIndex + 1) % rungCount;
+        lastRungPosition = position;
     }
 
-    for (int i = 0; i < RungCount; ++i)
-        Rungs[i].TimeToLive -= deltaTime;
+    for (int i = 0; i < rungCount; ++i)
+        rungs[i].timeToLive -= deltaTime;
 }
 
-void Ship::PositionActiveTrailRung()
-{
-    Rungs[RungIndex].TimeToLive = RungTimeToLive;
-    float halfWidth = Width / 2.f;
-    float halfLength = Length / 2.f;
-    Rungs[RungIndex].LeftPoint = TransformPoint({ -halfWidth, 0.0f, -halfLength });
-    Rungs[RungIndex].RightPoint = TransformPoint({ halfWidth, 0.0f, -halfLength });
+void Ship::positionActiveTrailRung() {
+    rungs[rungIndex].timeToLive = RungTimeToLive;
+    float halfWidth = width / 2.f;
+    float halfLength = length / 2.f;
+    rungs[rungIndex].leftPoint = transformPoint({ -halfWidth, 0.0f, -halfLength });
+    rungs[rungIndex].rightPoint = transformPoint({ halfWidth, 0.0f, -halfLength });
 }
 
-void Ship::Draw(bool showDebugAxes) const
-{
-    DrawModel(ShipModel, Vector3Zero(), 1, ShipColor);
+void Ship::draw(bool showDebugAxes) const {
+    DrawModel(shipModel, Vector3Zero(), 1, shipColor);
 
-    if (showDebugAxes)
-    {
+    if (showDebugAxes) {
         BeginBlendMode(BlendMode::BLEND_ADDITIVE);
-        DrawLine3D(Position, Vector3Add(Position, GetForward()), { 0, 0, 255, 255 });
-        DrawLine3D(Position, Vector3Add(Position, GetLeft()), { 255, 0, 0, 255 });
-        DrawLine3D(Position, Vector3Add(Position, GetUp()), { 0, 255, 0, 255 });
-        DrawSphereWires(Position, 0.3, 5, 5, GRAY);
+        DrawLine3D(position, Vector3Add(position, getForward()), { 0, 0, 255, 255 });
+        DrawLine3D(position, Vector3Add(position, getLeft()), { 255, 0, 0, 255 });
+        DrawLine3D(position, Vector3Add(position, getUp()), { 0, 255, 0, 255 });
+        DrawSphereWires(position, 0.3, 5, 5, GRAY);
         EndBlendMode();
     }
 
     if (this->isEnemy) {
-        this->DrawTrail();
+        this->drawTrail();
     }
 }
 
-void Ship::DrawTrail() const
+void Ship::drawTrail() const
 {
     BeginBlendMode(BlendMode::BLEND_ADDITIVE);
     rlDisableDepthMask();
 
-    for (int i = 0; i < RungCount; ++i)
+    for (int i = 0; i < rungCount; ++i)
     {
-        if (Rungs[i].TimeToLive <= 0)
+        if (rungs[i].timeToLive <= 0)
             continue;
 
-        auto& thisRung = Rungs[i % RungCount];
+        auto& thisRung = rungs[i % rungCount];
 
-        Color color = TrailColor;
-        color.a = 255 * thisRung.TimeToLive / RungTimeToLive;
+        Color color = trailColor;
+        color.a = 255 * thisRung.timeToLive / RungTimeToLive;
         Color fill = color;
         fill.a = color.a / 4;
 
         // The current rung is dragged along behind the ship, so the crossbar shouldn't be drawn.
         // If the crossbar is drawn when the ship is slow, it looks weird having a line behind it.
-        if (i != RungIndex)
-            DrawLine3D(thisRung.LeftPoint, thisRung.RightPoint, color);
+        if (i != rungIndex)
+            DrawLine3D(thisRung.leftPoint, thisRung.rightPoint, color);
 
-        auto& nextRung = Rungs[(i + 1) % RungCount];
-        if (nextRung.TimeToLive > 0 && thisRung.TimeToLive < nextRung.TimeToLive)
+        auto& nextRung = rungs[(i + 1) % rungCount];
+        if (nextRung.timeToLive > 0 && thisRung.timeToLive < nextRung.timeToLive)
         {
-            DrawLine3D(nextRung.LeftPoint, thisRung.LeftPoint, color);
-            DrawLine3D(nextRung.RightPoint, thisRung.RightPoint, color);
+            DrawLine3D(nextRung.leftPoint, thisRung.leftPoint, color);
+            DrawLine3D(nextRung.rightPoint, thisRung.rightPoint, color);
 
-            DrawTriangle3D(thisRung.LeftPoint, thisRung.RightPoint, nextRung.LeftPoint, fill);
-            DrawTriangle3D(nextRung.LeftPoint, thisRung.RightPoint, nextRung.RightPoint, fill);
+            DrawTriangle3D(thisRung.leftPoint, thisRung.rightPoint, nextRung.leftPoint, fill);
+            DrawTriangle3D(nextRung.leftPoint, thisRung.rightPoint, nextRung.rightPoint, fill);
 
-            DrawTriangle3D(nextRung.LeftPoint, thisRung.RightPoint, thisRung.LeftPoint, fill);
-            DrawTriangle3D(nextRung.RightPoint, thisRung.RightPoint, nextRung.LeftPoint, fill);
+            DrawTriangle3D(nextRung.leftPoint, thisRung.rightPoint, thisRung.leftPoint, fill);
+            DrawTriangle3D(nextRung.rightPoint, thisRung.rightPoint, nextRung.leftPoint, fill);
         }
     }
 
@@ -164,28 +154,28 @@ void Ship::DrawTrail() const
 
 Crosshair::Crosshair(const char* modelPath)
 {
-    CrosshairModel = LoadModel(modelPath);
+    crosshairModel = LoadModel(modelPath);
 }
 
 Crosshair::~Crosshair()
 {
-    UnloadModel(CrosshairModel);
+    UnloadModel(crosshairModel);
 }
 
-void Crosshair::PositionCrosshairOnShip(const Ship& ship, float distance)
+void Crosshair::positionCrosshairOnShip(const Ship& ship, float distance)
 {
-    auto crosshairPos = Vector3Add(Vector3Scale(ship.GetForward(), distance), ship.Position);
+    auto crosshairPos = Vector3Add(Vector3Scale(ship.getForward(), distance), ship.position);
     auto crosshairTransform = MatrixTranslate(crosshairPos.x, crosshairPos.y, crosshairPos.z);
-    crosshairTransform = MatrixMultiply(QuaternionToMatrix(ship.Rotation), crosshairTransform);
-    CrosshairModel.transform = crosshairTransform;
+    crosshairTransform = MatrixMultiply(QuaternionToMatrix(ship.rotation), crosshairTransform);
+    crosshairModel.transform = crosshairTransform;
 }
 
-void Crosshair::DrawCrosshair() const
+void Crosshair::drawCrosshair() const
 {
     BeginBlendMode(BlendMode::BLEND_ADDITIVE);
     rlDisableDepthTest();
 
-    DrawModel(CrosshairModel, Vector3Zero(), 1, DARKGREEN);
+    DrawModel(crosshairModel, Vector3Zero(), 1, GREEN);
     //DrawModelWires(CrosshairModel, Vector3Zero(), 1, DARKGREEN);
 
     rlEnableDepthTest();

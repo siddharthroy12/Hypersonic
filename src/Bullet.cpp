@@ -3,22 +3,22 @@
 #include <iostream>
 
 Bullet::Bullet(bool enemy, Color color, Vector3 position, Vector3 velocity) {
-    this->_color = color;
+    this->color = color;
     this->position = position;
-    this->_velocity = velocity;
+    this->velocity = velocity;
     this->isDead = false;
     this->timeElapsed = 0;
-    this->enemy = enemy;
+    this->isEnemy = enemy;
 }
 
-void Bullet::drawBullet() {
+void Bullet::draw() {
     DrawCylinderEx(this->position,
-                   Vector3Add(this->position, Vector3Scale(Vector3Normalize(this->_velocity), 2)),
-                   0, 0.09, 1, this->_color);
+                   Vector3Add(this->position, Vector3Scale(Vector3Normalize(this->velocity), 2)),
+                   0, 0.09, 1, this->color);
 }
 
-void Bullet::updateBullet(float deltaTime) {
-    this->position = Vector3Add(this->position, Vector3Scale(this->_velocity, deltaTime));
+void Bullet::update(float deltaTime) {
+    this->position = Vector3Add(this->position, Vector3Scale(this->velocity, deltaTime));
     this->timeElapsed += deltaTime;
 
     if (timeElapsed > 1) {

@@ -1,74 +1,68 @@
-#include "GameCamera.h"
+#include "GameCamera.hpp"
 
 #include "../libs/raylib/src/raymath.h"
 
-#include "Ship.h"
-#include "MathUtils.h"
+#include "Ship.hpp"
+#include "MathUtils.hpp"
 
-GameCamera::GameCamera(bool isPerspective, float fieldOfView)
-{
-    Camera = Camera3D();
-    Camera.position = Vector3{ 0, 10, -10 };
-    Camera.target = Vector3{ 0, 0, 0 };
-    Camera.up = Vector3{ 0, 1, 0 };
+GameCamera::GameCamera(bool isPerspective, float fieldOfView) {
+    camera = Camera3D();
+    camera.position = Vector3{ 0, 10, -10 };
+    camera.target = Vector3{ 0, 0, 0 };
+    camera.up = Vector3{ 0, 1, 0 };
 
-    Camera.fovy = fieldOfView;
-    Camera.projection = isPerspective
+    camera.fovy = fieldOfView;
+    camera.projection = isPerspective
         ? CameraProjection::CAMERA_PERSPECTIVE
         : CameraProjection::CAMERA_ORTHOGRAPHIC;
 
-    SmoothPosition = Vector3Zero();
-    SmoothTarget = Vector3Zero();
-    SmoothUp = Vector3Zero();
+    smoothPosition = Vector3Zero();
+    smoothTarget = Vector3Zero();
+    smoothUp = Vector3Zero();
 }
 
-void GameCamera::FollowShip(const Ship& ship, float deltaTime)
-{
-    Vector3 position = ship.TransformPoint({ 0, 1, -1 });
-    Vector3 shipForwards = Vector3Scale(ship.GetForward(), 25);
-    Vector3 target = Vector3Add(ship.Position, shipForwards);
-    Vector3 up = ship.GetUp();
+void GameCamera::followShip(const Ship& ship, float deltaTime) {
+    Vector3 position = ship.transformPoint({ 0, 1, -1 });
+    Vector3 shipForwards = Vector3Scale(ship.getForward(), 25);
+    Vector3 target = Vector3Add(ship.position, shipForwards);
+    Vector3 up = ship.getUp();
 
-    MoveTo(position, target, up, deltaTime);
+    moveTo(position, target, up, deltaTime);
 }
 
-void GameCamera::MoveTo(Vector3 position, Vector3 target, Vector3 up, float deltaTime)
-{
-    Camera.position = SmoothDamp(
-            Camera.position, position,
+void GameCamera::moveTo(Vector3 position, Vector3 target, Vector3 up, float deltaTime) {
+    camera.position = smoothDamp(
+            camera.position, position,
             20, deltaTime);
 
-    Camera.target = SmoothDamp(
-            Camera.target, target,
+    camera.target = smoothDamp(
+            camera.target, target,
             5, deltaTime);
 
-    Camera.up = SmoothDamp(
-            Camera.up, up,
+    camera.up = smoothDamp(
+            camera.up, up,
             5, deltaTime);
 }
 
-void GameCamera::SetPosition(Vector3 position, Vector3 target, Vector3 up)
+void GameCamera::setPosition(Vector3 position, Vector3 target, Vector3 up)
 {
-    Camera.position = position;
-    Camera.target = target;
-    Camera.up = up;
+    camera.position = position;
+    camera.target = target;
+    camera.up = up;
 
-    SmoothPosition = position;
-    SmoothTarget = target;
-    SmoothUp = up;
+    smoothPosition = position;
+    smoothTarget = target;
+    smoothUp = up;
 }
 
-Vector3 GameCamera::GetPosition() const
-{
-    return Camera.position;
+Vector3 GameCamera::getPosition() const {
+    return camera.position;
 }
 
-void GameCamera::Begin3DDrawing() const
-{
-    BeginMode3D(Camera);
+void GameCamera::begin3DDrawing() const {
+    BeginMode3D(camera);
 }
 
-void GameCamera::EndDrawing() const
-{
+void GameCamera::end3DDrawing() const {
     EndMode3D();
 }
