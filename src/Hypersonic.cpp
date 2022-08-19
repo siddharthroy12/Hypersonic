@@ -153,15 +153,13 @@ int main() {
             }
 
             if (IsKeyPressed(KEY_SPACE)) {
-                bullets.push_back(Bullet(false, RED, Vector3Add(player.Position, player.GetForward()), Vector3Scale(player.Velocity, 4)));
+                bullets.push_back(Bullet(false, RED, player.Position, Vector3Scale(player.Velocity, 4)));
             }
 
             if (IsKeyPressed(KEY_I)) {
                 summonEnemy(player, shipModel, enemies);
             }
         }
-
-        printVector3(player.GetForward());
 
         { // Gameplay updates
             if (!gamePaused) {
