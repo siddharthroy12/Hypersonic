@@ -66,15 +66,15 @@ void printVector3(Vector3 vector) {
 }
 
 void summonEnemy(Ship &player, Model model, std::vector<Ship> &enemies) {
-    Ship other(model, true);
+    Ship other(player);
     Vector3 random;
     random.x = GetRandomValue(-10, 10);
     random.y = GetRandomValue(-10, 10);
     random.z = GetRandomValue(-10, 10);
     Vector3 direction = Vector3Normalize(random);
-    other.position = Vector3Add(player.position, Vector3Scale(direction, 10));
-    other.velocity = player.velocity;
-    other.rotation = player.rotation;
+    other.position = Vector3Add(player.position, Vector3Scale(direction, 15));
+    other.trailColor = MAROON;
+    other.isEnemy = true;
     enemies.push_back(other);
 }
 

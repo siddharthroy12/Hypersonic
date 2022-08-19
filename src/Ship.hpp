@@ -8,6 +8,8 @@ struct TrailRung {
     Vector3 leftPoint;
     Vector3 rightPoint;
     float timeToLive;
+    TrailRung();
+    TrailRung(const TrailRung &oldTrailRung);
 };
 
 class Ship : public Actor {
@@ -37,6 +39,7 @@ class Ship : public Actor {
         void update(float deltaTime);
         void draw(bool showDebugAxes) const;
         void drawTrail() const;
+        Ship(const Ship &oldShip);
 
     private:
         Model shipModel = {};

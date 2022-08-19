@@ -8,6 +8,14 @@
 static const float RungDistance = 2.0f;
 static const float RungTimeToLive = 2.0f;
 
+TrailRung::TrailRung() {}
+
+TrailRung::TrailRung(const TrailRung &oldTrailRung) {
+    this->leftPoint = oldTrailRung.leftPoint;
+    this->rightPoint = oldTrailRung.rightPoint;
+    this->timeToLive = oldTrailRung.timeToLive;
+}
+
 Ship::Ship(Model model, bool isEnemy) {
     shipModel = model;
     rotation = QuaternionFromEuler(1, 2, 0);
@@ -20,6 +28,49 @@ Ship::Ship(Model model, bool isEnemy) {
     }
 }
 
+Ship::Ship(const Ship &oldShip) {
+    this->rotation = oldShip.rotation;
+    this->position = oldShip.position;
+    this->velocity = oldShip.velocity;
+    this->inputForward = oldShip.inputForward;
+    this->inputLeft = oldShip.inputLeft;
+    this->inputUp = oldShip.inputUp;
+    this->inputPitchDown = oldShip.inputPitchDown;
+    this->inputRollRight = oldShip.inputRollRight;
+    this->inputYawLeft = oldShip.inputYawLeft;
+
+    this->maxSpeed = oldShip.maxSpeed;
+    this->throttleResponse = oldShip.throttleResponse;
+    this->turnRate = oldShip.turnRate;
+    this->turnResponse = oldShip.turnResponse;
+
+    this->length = oldShip.length;
+    this->width = oldShip.width;
+
+    this->trailColor = oldShip.trailColor;
+    this->isDead = oldShip.isDead;
+    this->isEnemy = oldShip.isEnemy;
+
+    this->shipModel = oldShip.shipModel;
+    this->shipColor = oldShip.shipColor;
+
+    for (int i = 0; i < this->rungCount; i++) {
+        this->rungs[i] = TrailRung(oldShip.rungs[i]);
+    }
+
+    this->smoothForward = oldShip.smoothForward;
+    this->smoothLeft = oldShip.smoothLeft;
+    this->smoothUp = oldShip.smoothUp;
+
+    this->smoothPitchDown = oldShip.smoothPitchDown;
+    this->smoothRollRight = oldShip.smoothRollRight;
+    this->smoothYawLeft = oldShip.smoothYawLeft;
+
+    this->visualBank = oldShip.visualBank;
+
+    this->lastRungPosition = oldShip.lastRungPosition;
+    this->rungIndex = oldShip.rungIndex;
+}
 
 void Ship::update(float deltaTime) {
     // Give the ship some momentum when accelerating.
@@ -164,7 +215,7 @@ Crosshair::~Crosshair()
 
 void Crosshair::positionCrosshairOnShip(const Ship& ship, float distance)
 {
-    auto crosshairPos = Vector3Add(Vector3Scale(ship.getForward(), distance), ship.position);
+    auto crosshairPos = Vector3Add(Vector3Add(Vector3Scale(ship.getForward(), distance), ship.position), ship.getDown());
     auto crosshairTransform = MatrixTranslate(crosshairPos.x, crosshairPos.y, crosshairPos.z);
     crosshairTransform = MatrixMultiply(QuaternionToMatrix(ship.rotation), crosshairTransform);
     crosshairModel.transform = crosshairTransform;
