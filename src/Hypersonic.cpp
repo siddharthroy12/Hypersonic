@@ -78,10 +78,24 @@ void summonEnemy(Ship &player, Model model, std::vector<Ship> &enemies) {
     enemies.push_back(other);
 }
 
-void summonAsteroid(Ship &player, std::vector<Asteroid> &asteroids) {
+void summonAsteroid(Ship &player, std::vector<Asteroid> &asteroids, Model model) {
     Vector3 position = Vector3Add(player.position, Vector3Scale(player.getForward(), 40));
-    Vector3 velocity = Vector3Scale(player.getForward(), 40);
-    asteroids.push_back(Asteroid(position, velocity));
+    Vector3 velocity = Vector3Scale(player.getForward(), 20);
+    asteroids.push_back(Asteroid(model, position, velocity));
+}
+
+bool visibleOnScreen(Vector3 position, Camera camera) {
+    Vector2 positionOnScreen = GetWorldToScreenEx(position,
+                                                  camera,
+                                                  renderWidth,
+                                                  renderHeight);
+
+    Rectangle screenRect;
+    screenRect.width = renderWidth;
+    screenRect.height = renderHeight;
+
+    return CheckCollisionPointRec(positionOnScreen, screenRect);
+
 }
 
 int main() {
@@ -120,6 +134,7 @@ int main() {
     std::vector<Asteroid> asteroids;
 
     Model shipModel = LoadModel("assets/ship.gltf");
+    Model asteroidModel = LoadModel("assets/asteroid.gltf");
 
     Ship player(shipModel, false);
     summonEnemy(player, shipModel, enemies);
@@ -153,7 +168,11 @@ int main() {
             }
 
             if (IsKeyPressed(KEY_SPACE)) {
-                bullets.push_back(Bullet(false, RED, player.position, Vector3Scale(player.getForward(), 100)));
+                bullets.push_back(Bullet(false,
+                            RED,
+                            player.position,
+                            Vector3Scale(player.getForward(),
+                                100)));
             }
 
             if (IsKeyPressed(KEY_I)) {
@@ -161,7 +180,7 @@ int main() {
             }
 
             if (IsKeyPressed(KEY_O)) {
-                summonAsteroid(player, asteroids);
+                summonAsteroid(player, asteroids, asteroidModel);
             }
         }
 
@@ -179,12 +198,19 @@ int main() {
 
                 // Remove dead enemies
                 enemies.erase(std::remove_if(enemies.begin(),
-                            enemies.end(),
-                            [&](Ship& enemy) {
-                            return enemy.isDead;
-                            }),
+                              enemies.end(),
+                              [&](Ship& enemy) {
+                                return enemy.isDead;
+                              }),
                         enemies.end());
 
+                // Remove dead asteroids
+                asteroids.erase(std::remove_if(asteroids.begin(),
+                                asteroids.end(),
+                                [&](Asteroid& asteroid) {
+                                    return asteroid.isDead;
+                                }),
+                                asteroids.end());
 
                 // Update bullets
                 for (auto &bullet : bullets) {
@@ -201,6 +227,10 @@ int main() {
                 // Update asteroids
                 for (auto &asteroid : asteroids) {
                     asteroid.update(deltaTime);
+
+                    if (Vector3Distance(asteroid.position, player.position) > 50) {
+                        asteroid.isDead = true;
+                    }
                 }
 
                 // Update enemy
@@ -249,17 +279,7 @@ int main() {
                 for (auto &enemy : enemies) {
                     enemy.draw(false);
 
-                    Vector2 enemyPositionOnScreen = GetWorldToScreenEx(enemy.position,
-                            cameraFlight.camera,
-                            renderWidth,
-                            renderHeight);
-
-                    Rectangle screenRect;
-                    screenRect.width = renderWidth;
-                    screenRect.height = renderHeight;
-
-                    if (!CheckCollisionPointRec(enemyPositionOnScreen, screenRect)) {
-
+                    if (!visibleOnScreen(enemy.position, cameraFlight.camera)) {
                         Vector3 pointer = Vector3Subtract(player.position, enemy.position);
                         pointer = Vector3Normalize(pointer);
                         Vector3 startPosition = Vector3Add(player.position, Vector3Scale(pointer, -0.5));
@@ -314,6 +334,7 @@ int main() {
 
     UnloadRenderTexture(renderTarget);
     UnloadModel(shipModel);
+    UnloadModel(asteroidModel);
     CloseWindow();
     return 0;
 }

@@ -3,7 +3,7 @@
 #include "../libs/raylib/src/raylib.h"
 #include "./Entity.hpp"
 
-class Bullet : Entity {
+class Bullet : public Entity {
     public:
         bool isDead;
         Bullet(bool enemy, Color color, Vector3 position, Vector3 velocity);
@@ -12,6 +12,4 @@ class Bullet : Entity {
         float timeElapsed;
         bool isEnemy;
         Color color;
-        Vector3 position;
-        Vector3 velocity;
 };
