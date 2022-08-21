@@ -5,6 +5,11 @@ Asteroid::Asteroid(Model model, Vector3 position, Vector3 velocity) {
     this->position = position;
     this->velocity = velocity;
     this->model = model;
+    Vector3 rotation;
+    rotation.x = GetRandomValue(1, 7);
+    rotation.y = GetRandomValue(1, 7);
+    rotation.z = GetRandomValue(1, 7);
+    this->model.transform = MatrixRotateXYZ(rotation);
     this->scale = 0;
 }
 

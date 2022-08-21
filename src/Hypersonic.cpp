@@ -8,6 +8,7 @@
 #include "MathUtils.hpp"
 #include "Bullet.hpp"
 #include "Asteroid.hpp"
+#include "Timer.hpp"
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -140,11 +141,24 @@ int main() {
     summonEnemy(player, shipModel, enemies);
     SpaceDust dust = SpaceDust(25, 255);
 
+    Timer asteroidTimer = Timer(2, true);
+    Timer enemyTimer = Timer(5, true);
+
     Scene currentScene = Scene::MAIN_SCENE;
     bool gamePaused = false;
 
     while (!WindowShouldClose()) {
         auto deltaTime = GetFrameTime();
+
+        { // Timers
+            if (asteroidTimer.update(deltaTime)) {
+                summonAsteroid(player, asteroids, asteroidModel);
+            }
+
+            if (enemyTimer.update(deltaTime) && enemies.size() < 4) {
+                summonEnemy(player, shipModel, enemies);
+            }
+        }
 
         { // Capture input
             if (!gamePaused) {
@@ -220,6 +234,13 @@ int main() {
                         if (Vector3Distance(enemy.position, bullet.position) < 0.5) {
                             bullet.isDead = true;
                             enemy.isDead = true;
+                        }
+                    }
+
+                    for (auto &asteroid : asteroids) {
+                        if (Vector3Distance(asteroid.position, bullet.position) < 1) {
+                            bullet.isDead = true;
+                            asteroid.isDead = true;
                         }
                     }
                 }

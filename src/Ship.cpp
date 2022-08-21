@@ -106,13 +106,15 @@ void Ship::update(float deltaTime) {
 
     //// Auto-roll from yaw
     //// Movement like a 3D space sim. This only feels good if there's no horizon auto-align.
-    //RotateLocalEuler({ 0, 0, -1 }, SmoothYawLeft * TurnRate * .5f * deltaTime);
+    rotateLocalEuler({ 0, 0, -1 }, smoothYawLeft * turnRate * .5f * deltaTime);
 
     // Auto-roll to align to horizon
+    /*
     if (fabs(getForward().y) < 0.8) {
         float autoSteerInput = getRight().y;
         rotateLocalEuler({ 0, 0, 1 }, autoSteerInput * turnRate * .5f * deltaTime);
     }
+    */
 
     // When yawing and strafing, there's some bank added to the model for visual flavor.
     float targetVisualBank = (-30 * DEG2RAD * smoothYawLeft) + (-15 * DEG2RAD * smoothLeft);
